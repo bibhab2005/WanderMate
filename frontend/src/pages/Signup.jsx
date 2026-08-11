@@ -43,11 +43,11 @@ export default function Signup() {
     <div className="min-h-screen bg-white flex flex-col items-center pt-6 font-sans text-gray-900">
 
       <div className="w-full max-w-7xl px-8 flex justify-between items-center mb-12">
-        <Link to="/" className="flex items-center gap-2">
-          <svg className="w-7 h-7 text-[#4285F4]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z" />
+        <Link to="/" className="flex items-center gap-3">
+          <svg className="w-8 h-8 text-[#0d9488]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
-          <span className="text-black font-bold text-xl tracking-tight">WanderMate</span>
+          <span className="text-black font-black text-2xl tracking-tight">WanderMate</span>
         </Link>
         <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
           Sign in

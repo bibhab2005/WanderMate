@@ -1,0 +1,21 @@
+export const CITIES = [
+  'Agra', 'Ahmedabad', 'Ajmer', 'Amritsar', 'Andaman & Nicobar', 'Aurangabad',
+  'Bangalore', 'Bhopal', 'Bhubaneswar', 'Bikaner',
+  'Chandigarh', 'Chennai', 'Coimbatore', 'Coorg',
+  'Darjeeling', 'Dehradun', 'Delhi', 'Dharamshala',
+  'Gangtok', 'Goa', 'Gokarna', 'Gurgaon', 'Guwahati',
+  'Hampi', 'Hyderabad',
+  'Indore',
+  'Jaipur', 'Jaisalmer', 'Jodhpur',
+  'Kanpur', 'Kochi', 'Kolkata', 'Kovalam',
+  'Ladakh', 'Lonavala', 'Lucknow',
+  'Madurai', 'Mahabaleshwar', 'Manali', 'Mangalore', 'Mount Abu', 'Mumbai', 'Munnar', 'Mussoorie', 'Mysore',
+  'Nagpur', 'Nainital', 'Noida',
+  'Ooty',
+  'Pondicherry', 'Pune', 'Pushkar',
+  'Rishikesh',
+  'Shillong', 'Shimla', 'Srinagar', 'Surat',
+  'Udaipur',
+  'Varanasi', 'Visakhapatnam', 'Vrindavan',
+  'Wayanad'
+].sort();

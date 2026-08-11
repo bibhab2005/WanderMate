@@ -24,7 +24,7 @@ The website is divided into two separate parts that talk to each other: a **Fron
 1. **Request**: Users request an itinerary specifying destination, duration, budget, and group size on the React frontend.
 2. **Processing**: The Django backend receives the request and securely interfaces with the Gemini 2.5 Flash model using a highly tuned prompt.
 3. **Data Structuring**: Gemini returns a strictly structured JSON response detailing day-by-day activities, time slots (Morning, Afternoon, Evening), and estimated costs.
-4. **Persistence**: Django saves the generated itinerary as an `AIItinerary` model attached to the user's profile.
+4. **Persistence**: Django saves the generated itinerary as an `AIItinerary` model attached to the user's profile. An `is_public` boolean (defaulting to False) dictates whether this trip is shared with the matchmaking engine or kept private.
 5. **Presentation**: The frontend renders the data in a responsive card layout. Cards dynamically fetch stunning background images from Pollinations AI based on the destination name.
 6. **Export**: Users can export the generated itineraries to PDF seamlessly using native browser printing, which strips out UI clutter via Tailwind print modifiers.
 

@@ -94,11 +94,11 @@ const Onboarding = () => {
         
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <svg className="w-8 h-8 text-[#4285F4]" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z" />
+            <svg className="w-8 h-8 text-[#0d9488]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </div>
-          <h1 className="text-2xl font-medium tracking-tight mb-2">WanderMate</h1>
+          <h1 className="text-2xl font-black tracking-tight mb-2 text-gray-900">WanderMate</h1>
           <p className="text-[#5f6368] text-[15px]">Let's personalize your travel experience</p>
         </div>
 

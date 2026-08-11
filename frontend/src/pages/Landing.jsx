@@ -35,10 +35,10 @@ const Landing = () => {
         <nav className="relative z-50 w-full px-6 py-6 h-20 flex items-center justify-between bg-transparent">
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-3">
-              <svg className="w-9 h-9 text-[#4285F4]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z" />
+              <svg className="w-8 h-8 text-[#0d9488]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
-              <span className="text-2xl font-medium tracking-tight">WanderMate</span>
+              <span className="text-2xl font-black tracking-tight text-gray-900">WanderMate</span>
             </Link>
             <div className="hidden md:flex items-center gap-8 text-lg text-[#5f6368] font-medium">
               <a href="#features" className="hover:text-[#202124] cursor-pointer py-4 transition-colors">Features</a>
@@ -282,7 +282,7 @@ const Landing = () => {
             <ul className="space-y-3 text-[#5f6368] font-medium">
               <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]"></span> React.js (Vite)</li>
               <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]"></span> Tailwind CSS v4</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]"></span> Native PDF Print Engine</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]"></span> Framer Motion & Print API</li>
             </ul>
           </div>
 
@@ -292,9 +292,9 @@ const Landing = () => {
             </div>
             <h3 className="text-2xl font-bold text-[#202124] mb-4">Backend Infrastructure</h3>
             <ul className="space-y-3 text-[#5f6368] font-medium">
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#34A853]"></span> Python 3</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#34A853]"></span> Python 3 & Django</li>
               <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#34A853]"></span> Django REST Framework</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#34A853]"></span> SQLite / Token Auth</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#34A853]"></span> SQLite & Google OAuth</li>
             </ul>
           </div>
 
@@ -306,7 +306,7 @@ const Landing = () => {
             <ul className="space-y-3 text-[#5f6368] font-medium">
               <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]"></span> Google Gemini 2.5 API</li>
               <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]"></span> Pollinations AI Images</li>
-              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]"></span> Hugging Face API</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]"></span> Jaccard Similarity Engine</li>
             </ul>
           </div>
         </div>

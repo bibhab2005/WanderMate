@@ -134,10 +134,10 @@ const ProfileSetup = () => {
 
       <div className="w-full max-w-2xl px-6">
         <div className="flex flex-col items-center mb-10">
-          <svg className="w-8 h-8 text-[#4285F4] mb-4" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 22h20L12 2zm0 6l5 10H7l5-10z" />
+          <svg className="w-8 h-8 text-[#0d9488] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
           </svg>
-          <h1 className="text-xl font-medium tracking-tight">WanderMate</h1>
+          <h1 className="text-xl font-black tracking-tight text-gray-900">WanderMate</h1>
           <p className="text-sm text-[#5f6368] mt-2">Let's personalize your travel experience</p>
         </div>
 

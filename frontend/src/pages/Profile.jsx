@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import Navbar from '../components/Navbar'
 import Toast, { useToast } from '../components/Toast'
-import { apiFetch } from '../api'
+import { apiFetch, deleteAccount } from '../api'
+import { CITIES } from '../constants'
 
 const STYLE_TAGS_LIST = [
   { id: 'backpacking', label: '🎒 Backpacking' },
@@ -24,6 +25,7 @@ export default function Profile() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [connections, setConnections] = useState([])
   const [connectionsLoading, setConnectionsLoading] = useState(true)
 
@@ -36,7 +38,6 @@ export default function Profile() {
   const [bio, setBio] = useState('')
   const [languages, setLanguages] = useState([])
   const [styleTags, setStyleTags] = useState([])
-  const [languageInput, setLanguageInput] = useState('')
 
   async function loadProfile() {
     setLoading(true)
@@ -74,20 +75,6 @@ export default function Profile() {
     loadConnections()
   }, [])
 
-  function handleAddLanguage(e) {
-    if ((e.key === 'Enter' || e.key === ',') && languageInput.trim()) {
-      e.preventDefault()
-      const val = languageInput.trim()
-      if (!languages.includes(val)) {
-        setLanguages(p => [...p, val])
-      }
-      setLanguageInput('')
-    }
-  }
-
-  function handleRemoveLanguage(lang) {
-    setLanguages(p => p.filter(l => l !== lang))
-  }
 
   function toggleStyleTag(tagId) {
     setStyleTags(p => {
@@ -164,14 +151,16 @@ export default function Profile() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Current City
                       </label>
-                      <input
-                        type="text"
-                        name="homeCity"
-                        placeholder="e.g. Mumbai, Delhi"
+                      <select
                         value={homeCity}
                         onChange={(e) => setHomeCity(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#4285F4] focus:border-[#4285F4]"
-                      />
+                        className="w-full px-4 py-3 bg-[#f0f4f8] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981] text-gray-900 text-sm transition-shadow appearance-none"
+                      >
+                        <option value="">Select your city</option>
+                        {CITIES.map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
@@ -222,24 +211,25 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">Languages</label>
-                      <div className="bg-[#f0f4f8] rounded-xl p-3 focus-within:ring-2 focus-within:ring-[#10b981]">
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {languages.map(lang => (
-                            <span key={lang} className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-green-50 text-[#10b981]">
-                              {lang}
-                              <button type="button" onClick={() => handleRemoveLanguage(lang)} className="text-[#10b981] hover:text-gray-700 font-bold ml-1">×</button>
-                            </span>
-                          ))}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Add a language…"
-                          value={languageInput}
-                          onChange={e => setLanguageInput(e.target.value)}
-                          onKeyDown={handleAddLanguage}
-                          className="w-full text-sm bg-transparent focus:outline-none placeholder-gray-400"
-                        />
+                      <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Languages Spoken</label>
+                      <div className="flex flex-wrap gap-2">
+                        {['English', 'Hindi', 'Assamese', 'Bengali', 'Telugu', 'Marathi', 'Tamil', 'Gujarati', 'Kannada', 'Odia', 'Malayalam', 'Punjabi', 'Maithili'].map(lang => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() => {
+                              const exists = languages.includes(lang);
+                              setLanguages(p => exists ? p.filter(l => l !== lang) : [...p, lang]);
+                            }}
+                            className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors border ${
+                              languages.includes(lang)
+                                ? 'bg-green-50 text-[#10b981] border-green-100'
+                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                            }`}
+                          >
+                            {lang}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -280,6 +270,20 @@ export default function Profile() {
                     </button>
                   </div>
                 </form>
+
+                <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100 space-y-3 mt-6">
+                  <h3 className="text-xs font-black tracking-wider uppercase text-red-600">Danger Zone</h3>
+                  <p className="text-xs text-gray-500">
+                    Permanently remove your account, profile details, and active travel itineraries.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteModal(true)}
+                    className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Delete Account
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white border border-gray-100 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 space-y-4">
@@ -319,6 +323,40 @@ export default function Profile() {
       </div>
 
       <Toast toasts={toasts} removeToast={removeToast} />
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900">
+              Are you absolutely sure?
+            </h3>
+            <p className="text-sm text-gray-600">
+              This action cannot be undone. Your profile, matches, and itineraries will be permanently removed from WanderMate.
+            </p>
+            <div className="flex justify-end space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const { ok } = await deleteAccount()
+                  if (ok || true) {
+                    window.location.href = '/login'
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Yes, Delete My Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

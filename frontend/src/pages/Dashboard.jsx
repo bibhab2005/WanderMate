@@ -5,6 +5,7 @@ import MatchCard from '../components/MatchCard'
 import MatchModal from '../components/MatchModal'
 import Toast, { useToast } from '../components/Toast'
 import { apiFetch } from '../api'
+import { CITIES } from '../constants'
 
 export default function Dashboard() {
   const { toasts, addToast, removeToast } = useToast()
@@ -85,13 +86,16 @@ export default function Dashboard() {
 
               <div className="flex-grow min-w-[200px] space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-700 ml-1">Destination</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Goa, Manali, Jaipur..."
+                <select
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  className="w-full bg-[#f8f9fa] border border-transparent focus:border-[#34A853] focus:ring-1 focus:ring-[#34A853] rounded-xl px-4 py-2.5 outline-none transition-all"
-                />
+                  className="w-full bg-[#f8f9fa] border border-transparent focus:border-[#34A853] focus:ring-1 focus:ring-[#34A853] rounded-xl px-4 py-2.5 outline-none transition-all appearance-none"
+                >
+                  <option value="">Any Destination</option>
+                  {CITIES.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex gap-2 shrink-0">

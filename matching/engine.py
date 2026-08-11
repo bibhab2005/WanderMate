@@ -30,12 +30,16 @@ def preference_similarity(user_a, user_b):
 def itinerary_overlap(user_a, user_b):
     itins_a = list(user_a.itineraries.all())
     itins_b = list(user_b.itineraries.all())
+    ai_itins_a = list(user_a.ai_itineraries.filter(is_public=True))
+    ai_itins_b = list(user_b.ai_itineraries.filter(is_public=True))
 
-    if not itins_a or not itins_b:
+    if not (itins_a or ai_itins_a) or not (itins_b or ai_itins_b):
         return 0.0
 
-    dest_a = set(f"{i.destination_city.lower()}|{i.destination_country.lower()}" for i in itins_a)
-    dest_b = set(f"{i.destination_city.lower()}|{i.destination_country.lower()}" for i in itins_b)
+    dest_a = set(i.destination_city.lower() for i in itins_a)
+    dest_a.update(i.destination.lower() for i in ai_itins_a)
+    dest_b = set(i.destination_city.lower() for i in itins_b)
+    dest_b.update(i.destination.lower() for i in ai_itins_b)
     dest_score = jaccard_index(dest_a, dest_b)
 
     dates_a = set()
@@ -60,10 +64,14 @@ def itinerary_overlap(user_a, user_b):
 def _shared_destinations(user_a, user_b):
     itins_a = list(user_a.itineraries.all())
     itins_b = list(user_b.itineraries.all())
-    dest_a = set(f"{i.destination_city}|{i.destination_country}" for i in itins_a)
-    dest_b = set(f"{i.destination_city}|{i.destination_country}" for i in itins_b)
+    ai_itins_a = list(user_a.ai_itineraries.filter(is_public=True))
+    ai_itins_b = list(user_b.ai_itineraries.filter(is_public=True))
+    dest_a = set(i.destination_city.title() for i in itins_a)
+    dest_a.update(i.destination.title() for i in ai_itins_a)
+    dest_b = set(i.destination_city.title() for i in itins_b)
+    dest_b.update(i.destination.title() for i in ai_itins_b)
     shared = dest_a & dest_b
-    return [d.split('|')[0] for d in shared]
+    return list(shared)
 
 
 def _overlapping_dates_count(user_a, user_b):
@@ -121,7 +129,7 @@ def get_ranked_matches(user, min_score=0):
     from django.contrib.auth.models import User
     candidates = User.objects.exclude(id=user.id).select_related(
         'profile', 'preferences'
-    ).prefetch_related('itineraries')
+    ).prefetch_related('itineraries', 'ai_itineraries')
 
     if hasattr(user, 'profile') and user.profile.home_city:
         candidates = candidates.filter(profile__home_city__iexact=user.profile.home_city)

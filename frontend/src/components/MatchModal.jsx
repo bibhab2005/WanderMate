@@ -183,10 +183,12 @@ export default function MatchModal({ userId, onClose, addToast }) {
                 {match.sample_itineraries.map(itin => (
                   <div key={itin.id} className="py-3 flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">📍 {itin.destination_city}, {itin.destination_country}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(itin.start_date)} → {formatDate(itin.end_date)}</p>
+                      <p className="text-sm font-semibold text-gray-900">📍 {itin.destination_city ? `${itin.destination_city}, ${itin.destination_country}` : itin.destination}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {itin.start_date && itin.end_date ? `${formatDate(itin.start_date)} → ${formatDate(itin.end_date)}` : 'AI Generated Plan'}
+                      </p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold shrink-0">{itin.duration_days}d</span>
+                    <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-semibold shrink-0">{itin.duration_days || itin.days}d</span>
                   </div>
                 ))}
               </div>

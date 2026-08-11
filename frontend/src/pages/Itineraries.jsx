@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { apiFetch } from '../api';
+import { CITIES } from '../constants';
 
 const Itineraries = () => {
   const [viewState, setViewState] = useState('list'); // 'list', 'detail', 'generate'
@@ -14,6 +15,7 @@ const Itineraries = () => {
   const [minBudget, setMinBudget] = useState('');
   const [maxBudget, setMaxBudget] = useState('');
   const [groupSize, setGroupSize] = useState('Solo');
+  const [isPublic, setIsPublic] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Chat state
@@ -42,7 +44,7 @@ const Itineraries = () => {
     try {
       const response = await apiFetch('/api/itineraries/generate/', {
         method: 'POST',
-        body: JSON.stringify({ destination, days, minBudget, maxBudget, group_size: groupSize }),
+        body: JSON.stringify({ destination, days, minBudget, maxBudget, group_size: groupSize, is_public: isPublic }),
       });
       if (response.ok && response.data.success) {
         setSelectedItinerary(response.data.itinerary);
@@ -113,7 +115,16 @@ const Itineraries = () => {
                 <div className="absolute inset-0 bg-black/40 hover:bg-black/30 transition-colors"></div>
                 
                 <div className="relative h-full flex flex-col justify-between z-10">
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-start">
+                    {itin.is_public ? (
+                      <div className="bg-white/20 backdrop-blur-md p-1.5 rounded-full shadow-sm text-white" title="Public (Matchmaking Enabled)">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                    ) : (
+                      <div className="bg-black/40 backdrop-blur-md p-1.5 rounded-full shadow-sm text-gray-300" title="Private">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                      </div>
+                    )}
                     {itin.itinerary_data?.trip_summary?.estimated_total_cost && (
                       <span className="bg-red-500/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm tracking-wide">
                         Est {itin.itinerary_data.trip_summary.estimated_total_cost}
@@ -158,13 +169,16 @@ const Itineraries = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <input 
-            type="text" 
-            placeholder="Destination"
+          <select 
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="bg-[#f8f9fa] border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-[#4285F4] transition-colors"
-          />
+            className="bg-[#f8f9fa] border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-[#4285F4] transition-colors appearance-none"
+          >
+            <option value="" disabled>Select Destination</option>
+            {CITIES.map(city => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
           <input 
             type="number" 
             placeholder="Days"
@@ -197,7 +211,23 @@ const Itineraries = () => {
             <option value="Event Squad">Event Squad</option>
           </select>
         </div>
-        <div className="mt-6 flex justify-end">
+
+        <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-6">
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-300 text-[#10b981] focus:ring-[#10b981] cursor-pointer transition-all"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900 group-hover:text-[#10b981] transition-colors">Make this trip public</p>
+              <p className="text-xs text-gray-500">Allow others to find and match with you for this destination.</p>
+            </div>
+          </label>
+
           <button 
             onClick={handleGenerate}
             disabled={isGenerating || !destination || !days}
@@ -225,6 +255,21 @@ const Itineraries = () => {
       window.print();
     };
 
+    const handleTogglePrivacy = async () => {
+      try {
+        const response = await apiFetch(`/api/itineraries/ai/${selectedItinerary.id}/toggle_privacy/`, {
+          method: 'PATCH'
+        });
+        if (response.ok && response.data.success) {
+          const updatedItin = { ...selectedItinerary, is_public: response.data.is_public };
+          setSelectedItinerary(updatedItin);
+          setSavedItineraries(savedItineraries.map(i => i.id === updatedItin.id ? updatedItin : i));
+        }
+      } catch (e) {
+        console.error('Failed to toggle privacy', e);
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between mb-6 print:hidden">
@@ -234,10 +279,25 @@ const Itineraries = () => {
             </button>
             <h1 className="text-2xl font-bold text-[#202124] capitalize">{selectedItinerary.destination} Itinerary</h1>
           </div>
-          <button onClick={handleDownloadPDF} className="text-sm font-medium text-white bg-[#10b981] px-5 py-2.5 rounded-lg hover:bg-[#059669] transition-colors flex items-center gap-2 shadow-sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            Download PDF
-          </button>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <span className="text-sm font-medium text-gray-700">Public:</span>
+              <div className="relative inline-block w-10 h-5 align-middle select-none transition duration-200 ease-in">
+                <input 
+                  type="checkbox" 
+                  checked={selectedItinerary.is_public || false}
+                  onChange={handleTogglePrivacy}
+                  className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out"
+                  style={{ transform: selectedItinerary.is_public ? 'translateX(100%)' : 'translateX(0)', borderColor: selectedItinerary.is_public ? '#10b981' : '#d1d5db' }}
+                />
+                <div className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-200 ${selectedItinerary.is_public ? 'bg-[#10b981]' : 'bg-gray-300'}`}></div>
+              </div>
+            </label>
+            <button onClick={handleDownloadPDF} className="text-sm font-medium text-white bg-[#10b981] px-5 py-2.5 rounded-lg hover:bg-[#059669] transition-colors flex items-center gap-2 shadow-sm">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              Download PDF
+            </button>
+          </div>
         </div>
 
         <div id="printable-itinerary" className="space-y-6 bg-[#f9fafb] pb-4">

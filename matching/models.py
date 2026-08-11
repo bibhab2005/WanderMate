@@ -151,6 +151,7 @@ class AIItinerary(models.Model):
     group_size = models.CharField(max_length=50, choices=GROUP_CHOICES, default='Solo')
     applied_travel_styles = models.JSONField(default=list, blank=True)
     itinerary_data = models.JSONField(null=True, blank=True)
+    is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

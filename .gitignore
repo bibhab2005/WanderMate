@@ -70,3 +70,8 @@ Desktop.ini
 # =========================
 .gemini/
 .agents/
+
+# =========================
+# Secrets / Credentials
+# =========================
+client_secret*.json

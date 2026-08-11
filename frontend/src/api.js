@@ -40,3 +40,7 @@ export async function apiFetch(url, options = {}) {
 export async function getMe() {
   return apiFetch('/api/me/')
 }
+
+export async function deleteAccount() {
+  return apiFetch('/api/account/delete/', { method: 'DELETE' })
+}

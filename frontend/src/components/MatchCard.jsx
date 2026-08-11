@@ -10,7 +10,6 @@ export default function MatchCard({ match, onOpenModal, addToast }) {
   const [sending, setSending] = useState(false)
 
   const initial = (match.full_name || match.username || '?')[0].toUpperCase()
-  const destText = (match.sample_itineraries || []).slice(0, 2).map(i => i.destination_city).join(' · ') || 'No trips planned'
 
   useEffect(() => {
     let active = true
@@ -108,7 +107,7 @@ export default function MatchCard({ match, onOpenModal, addToast }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span className="truncate">{destText}</span>
+          <span className="truncate">{match.home_city || 'Location unknown'}</span>
         </div>
         <button
           onClick={handleBtnClick}

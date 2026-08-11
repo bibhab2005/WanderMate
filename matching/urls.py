@@ -23,9 +23,11 @@ urlpatterns = [
     path('api/itineraries/ai/', views.api_ai_itineraries_list, name='api_ai_itineraries_list'),
     path('api/itineraries/create/', views.api_itinerary_create, name='api_itinerary_create'),
     path('api/itineraries/<int:pk>/', views.api_itinerary_detail, name='api_itinerary_detail'),
+    path('api/itineraries/ai/<int:pk>/toggle_privacy/', views.api_ai_itinerary_toggle_privacy, name='api_ai_itinerary_toggle_privacy'),
     path('api/requests/send/', views.api_travel_request_send, name='api_travel_request_send'),
     path('api/requests/<int:req_id>/respond/', views.api_travel_request_respond, name='api_travel_request_respond'),
     path('api/requests/', views.api_travel_requests, name='api_travel_requests'),
     path('api/requests/status/<int:user_id>/', views.api_request_status, name='api_request_status'),
     path('api/chat/<int:receiver_id>/', views.api_chat, name='api_chat'),
+    path('api/account/delete/', views.api_delete_account, name='api_delete_account'),
 ]
