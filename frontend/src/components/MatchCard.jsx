@@ -4,6 +4,14 @@ import { apiFetch } from '../api'
 const AVATAR_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899']
 const avatarColor = id => AVATAR_COLORS[id % AVATAR_COLORS.length]
 
+function cleanAvatarUrl(url) {
+  if (url && url.includes('api.dicebear.com')) {
+    const startIdx = url.indexOf('api.dicebear.com');
+    return 'https://' + decodeURIComponent(url.substring(startIdx));
+  }
+  return url;
+}
+
 export default function MatchCard({ match, onOpenModal, addToast }) {
   const [reqStatus, setReqStatus] = useState(null)
   const [reqDirection, setReqDirection] = useState(null)
@@ -67,7 +75,7 @@ export default function MatchCard({ match, onOpenModal, addToast }) {
           <div className="flex items-center gap-3">
             {match.avatar ? (
               <img
-                src={match.avatar}
+                src={cleanAvatarUrl(match.avatar)}
                 alt={match.full_name || match.username}
                 className="w-10 h-10 rounded-full object-cover border border-gray-100 shrink-0"
                 referrerPolicy="no-referrer"

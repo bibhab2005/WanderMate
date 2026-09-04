@@ -20,8 +20,8 @@ def preference_similarity(user_a, user_b):
     except Exception:
         return 0.0
 
-    tags_a = set(pref_a.style_tags)
-    tags_b = set(pref_b.style_tags)
+    tags_a = set(t.lower().strip() for t in pref_a.style_tags if isinstance(t, str))
+    tags_b = set(t.lower().strip() for t in pref_b.style_tags if isinstance(t, str))
     tag_score = jaccard_index(tags_a, tags_b)
 
     return tag_score
@@ -100,8 +100,8 @@ def _shared_activities(user_a, user_b):
 
 def _shared_styles(user_a, user_b):
     try:
-        tags_a = set(user_a.preferences.style_tags)
-        tags_b = set(user_b.preferences.style_tags)
+        tags_a = set(t.lower().strip() for t in user_a.preferences.style_tags if isinstance(t, str))
+        tags_b = set(t.lower().strip() for t in user_b.preferences.style_tags if isinstance(t, str))
         return list(tags_a & tags_b)
     except Exception:
         return []

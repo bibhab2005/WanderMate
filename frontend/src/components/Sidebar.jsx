@@ -2,6 +2,14 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../App'
 import { apiFetch } from '../api'
 
+function cleanAvatarUrl(url) {
+  if (url && url.includes('api.dicebear.com')) {
+    const startIdx = url.indexOf('api.dicebear.com');
+    return 'https://' + decodeURIComponent(url.substring(startIdx));
+  }
+  return url;
+}
+
 const navItems = [
   {
     to: '/dashboard', label: 'Discover',
@@ -55,7 +63,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           {user?.profile?.avatar ? (
             <img
-              src={user.profile.avatar}
+              src={cleanAvatarUrl(user.profile.avatar)}
               alt={user.profile.username}
               className="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0"
               referrerPolicy="no-referrer"

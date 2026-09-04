@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import MatchCard from '../components/MatchCard';
+import MatchModal from '../components/MatchModal';
+import Toast, { useToast } from '../components/Toast';
 import { apiFetch } from '../api';
 import { CITIES } from '../constants';
 
@@ -18,6 +21,11 @@ const Itineraries = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   
+  // Companion Matches State
+  const { toasts, addToast, removeToast } = useToast();
+  const [destinationMatches, setDestinationMatches] = useState([]);
+  const [selectedMatchId, setSelectedMatchId] = useState(null);
+  
   // Chat state
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
@@ -27,6 +35,20 @@ const Itineraries = () => {
       fetchSavedItineraries();
     }
   }, [viewState]);
+
+  useEffect(() => {
+    if (selectedItinerary?.is_public && selectedItinerary?.destination) {
+      apiFetch(`/api/matches/?destination=${encodeURIComponent(selectedItinerary.destination)}`)
+        .then(res => {
+          if (res.ok && res.data.matches) {
+            setDestinationMatches(res.data.matches);
+          }
+        })
+        .catch(err => console.error("Failed to load matches:", err));
+    } else {
+      setDestinationMatches([]);
+    }
+  }, [selectedItinerary]);
 
   const fetchSavedItineraries = async () => {
     try {
@@ -343,6 +365,31 @@ const Itineraries = () => {
         ))}
         </div>
 
+        {/* Dynamic Companion Matches Section */}
+        {selectedItinerary.is_public && destinationMatches.length > 0 && (
+          <div className="bg-white p-6 rounded-2xl border border-[#dadce0] shadow-sm mt-8 print:hidden">
+            <div className="mb-6 animate-fadeInUp">
+              <h3 className="text-xl font-bold text-[#202124] mb-2">
+                Look who else is going to {selectedItinerary.destination}!
+              </h3>
+              <p className="text-gray-500 text-sm">
+                We found {destinationMatches.length} travelers with similar styles heading your way.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {destinationMatches.slice(0, 3).map(match => (
+                <MatchCard 
+                  key={match.id} 
+                  match={match} 
+                  onOpenModal={setSelectedMatchId}
+                  addToast={addToast}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="bg-white p-6 rounded-2xl border border-[#dadce0] shadow-sm mt-8 print:hidden">
           <h3 className="text-lg font-bold mb-4">Refine Itinerary with Gemini AI</h3>
           <div className="h-64 overflow-y-auto border border-gray-200 rounded-xl p-4 mb-4 bg-[#f8f9fa] space-y-4">
@@ -396,6 +443,14 @@ const Itineraries = () => {
           </div>
         </main>
       </div>
+      {selectedMatchId && (
+        <MatchModal 
+          matchId={selectedMatchId} 
+          onClose={() => setSelectedMatchId(null)} 
+          addToast={addToast}
+        />
+      )}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </div>
   );
 };

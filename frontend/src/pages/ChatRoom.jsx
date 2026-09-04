@@ -5,6 +5,14 @@ import { useAuth } from '../App';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 
+function cleanAvatarUrl(url) {
+  if (url && url.includes('api.dicebear.com')) {
+    const startIdx = url.indexOf('api.dicebear.com');
+    return 'https://' + decodeURIComponent(url.substring(startIdx));
+  }
+  return url;
+}
+
 const ChatRoom = () => {
   const { matchId } = useParams();
   const { user } = useAuth();
@@ -84,7 +92,7 @@ const ChatRoom = () => {
             <div className="bg-[#f8f9fa] border-b border-[#dadce0] px-6 py-4 flex items-center gap-4">
               {matchUser?.avatar ? (
                 <img
-                  src={matchUser.avatar}
+                  src={cleanAvatarUrl(matchUser.avatar)}
                   alt={matchUser.full_name || matchUser.username}
                   className="w-10 h-10 rounded-full object-cover border border-gray-100 shrink-0"
                   referrerPolicy="no-referrer"

@@ -4,6 +4,14 @@ import { apiFetch } from '../api';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 
+function cleanAvatarUrl(url) {
+  if (url && url.includes('api.dicebear.com')) {
+    const startIdx = url.indexOf('api.dicebear.com');
+    return 'https://' + decodeURIComponent(url.substring(startIdx));
+  }
+  return url;
+}
+
 const Messages = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +69,7 @@ const Messages = () => {
                   >
                     {match.avatar ? (
                       <img 
-                        src={match.avatar} 
+                        src={cleanAvatarUrl(match.avatar)} 
                         alt={displayName} 
                         className="w-14 h-14 rounded-full object-cover border border-gray-100 shrink-0" 
                         referrerPolicy="no-referrer"

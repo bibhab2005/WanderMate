@@ -5,6 +5,14 @@ import { apiFetch } from '../api'
 const AVATAR_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899']
 const avatarColor = id => AVATAR_COLORS[id % AVATAR_COLORS.length]
 
+function cleanAvatarUrl(url) {
+  if (url && url.includes('api.dicebear.com')) {
+    const startIdx = url.indexOf('api.dicebear.com');
+    return 'https://' + decodeURIComponent(url.substring(startIdx));
+  }
+  return url;
+}
+
 function formatDate(iso) {
   const d = new Date(iso)
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -101,7 +109,7 @@ export default function MatchModal({ userId, onClose, addToast }) {
           <div className="flex gap-4">
             {match.avatar ? (
               <img
-                src={match.avatar}
+                src={cleanAvatarUrl(match.avatar)}
                 alt={match.full_name || match.username}
                 className="w-14 h-14 rounded-full object-cover border border-gray-100 shrink-0"
                 referrerPolicy="no-referrer"
