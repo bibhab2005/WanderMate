@@ -33,8 +33,8 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-60 shrink-0 bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-64px)] sticky top-16">
-      <nav className="flex-1 p-3 flex flex-col gap-1">
+    <aside className="w-60 shrink-0 bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-4rem)] sticky top-16 z-20 print:hidden">
+      <nav className="flex-1 p-3 flex flex-col gap-1 overflow-y-auto">
         {navItems.map(item => (
           <Link
             key={item.to}

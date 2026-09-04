@@ -18,7 +18,7 @@ const TopNav = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100">
+    <header className="sticky top-0 z-30 flex items-center justify-between px-8 h-16 bg-white/95 backdrop-blur-md border-b border-gray-100 print:hidden">
       <div className="flex items-center gap-3">
         <svg 
           className="w-8 h-8 text-[#0d9488]" 

@@ -8,6 +8,7 @@ urlpatterns = [
     path('auth/logout/', views.auth_logout, name='auth_logout'),
     path('onboarding/', views.onboarding, name='onboarding'),
     path('onboarding/complete/', views.onboarding_complete, name='onboarding_complete'),
+    path('api/onboarding/complete/', views.onboarding_complete, name='api_onboarding_complete'),
     path('dashboard/', views.dashboard_feed, name='dashboard_feed'),
     path('dashboard/profile/', views.profile_view, name='profile_view'),
     path('dashboard/itineraries/', views.itineraries_view, name='itineraries_view'),

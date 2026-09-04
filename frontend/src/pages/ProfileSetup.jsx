@@ -1,21 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../App';
+import { CITIES } from '../constants';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    age: '',
-    gender: '',
-    bio: '',
-    languages: [],
-    travelStyles: []
-  });
+  const [formData, setFormData] = useState(() => ({
+    name: user?.profile?.full_name || '',
+    email: user?.profile?.email || '',
+    location: user?.profile?.home_city || '',
+    age: user?.profile?.age || '',
+    gender: user?.profile?.gender || '',
+    bio: user?.profile?.bio || '',
+    languages: user?.profile?.languages || [],
+    travelStyles: user?.profile?.style_tags || []
+  }));
+
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const cityDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) {
+        setCityDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredCities = formData.location.trim()
+    ? CITIES.filter(c => c.toLowerCase().includes(formData.location.toLowerCase().trim()))
+    : CITIES;
 
   const availableLanguages = [
     'English', 'Hindi', 'Assamese', 'Bengali', 'Telugu', 
@@ -39,13 +58,17 @@ const ProfileSetup = () => {
       try {
         const response = await apiFetch('/api/me/');
         if (response.ok && response.data.authenticated) {
-          const { full_name, email, languages, style_tags } = response.data.profile || {};
+          const profile = response.data.profile || {};
           setFormData(prevState => ({
             ...prevState,
-            name: full_name || '',
-            email: email || '',
-            languages: languages || [],
-            travelStyles: style_tags || []
+            name: profile.full_name || prevState.name || '',
+            email: profile.email || prevState.email || '',
+            location: profile.home_city || prevState.location || '',
+            age: profile.age || prevState.age || '',
+            gender: profile.gender || prevState.gender || '',
+            bio: profile.bio || prevState.bio || '',
+            languages: (profile.languages && profile.languages.length > 0) ? profile.languages : prevState.languages,
+            travelStyles: (profile.style_tags && profile.style_tags.length > 0) ? profile.style_tags : prevState.travelStyles
           }));
         }
       } catch (error) {
@@ -54,7 +77,7 @@ const ProfileSetup = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -83,12 +106,20 @@ const ProfileSetup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.age !== '' && formData.age !== null && formData.age !== undefined) {
+      const parsedAge = parseInt(formData.age, 10);
+      if (isNaN(parsedAge) || parsedAge < 1 || parsedAge > 120) {
+        alert("Please enter a valid age between 1 and 120.");
+        return;
+      }
+    }
     try {
-      const response = await apiFetch('/onboarding/complete/', {
+      const response = await apiFetch('/api/onboarding/complete/', {
         method: 'POST',
         body: JSON.stringify({
           full_name: formData.name,
           email: formData.email,
+          home_city: formData.location.trim(),
           age: formData.age ? parseInt(formData.age, 10) : null,
           gender: formData.gender,
           bio: formData.bio,
@@ -97,15 +128,16 @@ const ProfileSetup = () => {
           pace: 'moderate'
         })
       });
-      if (response.ok) {
+      if (response.ok && response.data?.success) {
         const me = await apiFetch('/api/me/');
         if (me.ok) {
           setUser(me.data);
         }
         navigate('/dashboard');
       } else {
-        console.error(response.data || response.error);
-        alert(`Error saving profile: ${response.error || 'Server rejected request details'}`);
+        const errorMsg = response.data?.error || response.data?.detail || 'Server rejected request details';
+        console.error("Profile save error:", response.data);
+        alert(`Error saving profile: ${errorMsg}`);
       }
     } catch (error) {
       console.error(error);
@@ -167,12 +199,71 @@ const ProfileSetup = () => {
             />
           </div>
 
+          <div className="flex flex-col gap-2 relative" ref={cityDropdownRef}>
+            <label className="text-[13px] font-medium text-[#5f6368] ml-1">Current City</label>
+            <div className="relative">
+              <input 
+                type="text" 
+                name="location"
+                autoComplete="off"
+                placeholder="e.g. Hyderabad, Delhi, Bangalore..."
+                value={formData.location}
+                onFocus={() => setCityDropdownOpen(true)}
+                onChange={(e) => {
+                  handleChange(e);
+                  setCityDropdownOpen(true);
+                }}
+                className="w-full px-4 py-3.5 pr-10 bg-white border border-[#dadce0] rounded-xl focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]" 
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setCityDropdownOpen(prev => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] hover:text-[#202124] p-1 cursor-pointer"
+              >
+                <svg className={`w-4 h-4 transition-transform duration-200 ${cityDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </div>
+
+            {cityDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#dadce0] rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto py-1">
+                {filteredCities.length > 0 ? (
+                  filteredCities.map(city => (
+                    <button
+                      key={city}
+                      type="button"
+                      className="w-full text-left px-4 py-2.5 text-sm text-[#202124] hover:bg-[#f0fdf4] hover:text-[#10b981] transition-colors flex items-center justify-between cursor-pointer"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, location: city }));
+                        setCityDropdownOpen(false);
+                      }}
+                    >
+                      <span>{city}</span>
+                      {formData.location.toLowerCase() === city.toLowerCase() && (
+                        <span className="text-[#10b981] font-bold text-xs">✓</span>
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-xs text-gray-500">
+                    Custom city "{formData.location}" will be saved
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label className="text-[13px] font-medium text-[#5f6368] ml-1">Age</label>
               <input 
                 type="number" 
                 name="age"
+                min="1"
+                max="120"
+                placeholder="e.g. 24"
                 value={formData.age}
                 onChange={handleChange}
                 className="w-full px-4 py-3.5 bg-transparent border border-[#dadce0] rounded-xl focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]" 

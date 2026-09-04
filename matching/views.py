@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from allauth.socialaccount.models import SocialAccount
 from .models import UserProfile, TravelPreference, Itinerary, TravelRequest, Message, AIItinerary
 from .engine import get_ranked_matches, compute_match_score
 from .serializers import (
@@ -113,27 +114,46 @@ def itineraries_view(request):
 @permission_classes([IsAuthenticated])
 def onboarding_complete(request):
     data = request.data
-    profile = request.user.profile
-    prefs = request.user.preferences
     user = request.user
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    prefs, _ = TravelPreference.objects.get_or_create(user=user)
     
-    if 'full_name' in data:
-        parts = data['full_name'].split(' ', 1)
+    if 'full_name' in data and data['full_name']:
+        parts = data['full_name'].strip().split(' ', 1)
         user.first_name = parts[0]
         user.last_name = parts[1] if len(parts) > 1 else ''
         user.save(update_fields=['first_name', 'last_name'])
         
-    if 'email' in data:
-        user.email = data['email']
+    if 'email' in data and data['email']:
+        user.email = data['email'].strip()
         user.save(update_fields=['email'])
 
-    profile.age = data.get('age')
+    age_raw = data.get('age')
+    if age_raw is not None and age_raw != '':
+        try:
+            age_int = int(age_raw)
+            if age_int < 1 or age_int > 120:
+                return Response({'success': False, 'error': 'Please enter a valid age between 1 and 120.'}, status=status.HTTP_400_BAD_REQUEST)
+            profile.age = age_int
+        except (ValueError, TypeError):
+            return Response({'success': False, 'error': 'Invalid age format.'}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        profile.age = None
+
+    if 'home_city' in data or 'location' in data:
+        loc = (data.get('home_city') or data.get('location') or '').strip()
+        profile.home_city = loc if loc else None
+
     profile.gender = data.get('gender', '')
     profile.pace = data.get('pace', 'moderate')
     profile.bio = data.get('bio', '')
     profile.languages = data.get('languages', [])
     profile.onboarding_complete = True
-    profile.save()
+    try:
+        profile.save()
+    except Exception as e:
+        return Response({'success': False, 'error': f'Failed to save profile: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
     prefs.style_tags = data.get('style_tags', [])
     prefs.save()
     return Response({'success': True, 'redirect': '/dashboard/'})
@@ -151,15 +171,39 @@ def api_csrf(request):
 def api_me(request):
     if not request.user.is_authenticated:
         return Response({'authenticated': False}, status=status.HTTP_401_UNAUTHORIZED)
-    try:
-        profile = request.user.profile
-    except UserProfile.DoesNotExist:
-        # Create user profile if it does not exist for some reason
-        profile = UserProfile.objects.create(user=request.user)
+    user = request.user
+
+    # Sync name and email from Google SocialAccount if missing
+    social_account = SocialAccount.objects.filter(user=user, provider='google').first()
+    if social_account and social_account.extra_data:
+        extra = social_account.extra_data
+        updated_fields = []
+        if not user.first_name and not user.last_name:
+            name = (extra.get('name') or '').strip()
+            given = (extra.get('given_name') or '').strip()
+            family = (extra.get('family_name') or '').strip()
+            if given or family:
+                user.first_name = given
+                user.last_name = family
+                updated_fields.extend(['first_name', 'last_name'])
+            elif name:
+                parts = name.split(' ', 1)
+                user.first_name = parts[0]
+                user.last_name = parts[1] if len(parts) > 1 else ''
+                updated_fields.extend(['first_name', 'last_name'])
+
+        if not user.email and extra.get('email'):
+            user.email = extra.get('email')
+            updated_fields.append('email')
+
+        if updated_fields:
+            user.save(update_fields=updated_fields)
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
     return Response({
         'authenticated': True,
         'onboarding_complete': profile.onboarding_complete,
-        'profile': serialize_profile(request.user),
+        'profile': serialize_profile(user),
     })
 
 
@@ -168,16 +212,20 @@ def api_me(request):
 def api_matches(request):
     min_score = float(request.query_params.get('min_score', 0))
     destination = request.query_params.get('destination', '').strip().lower()
-    ranked = get_ranked_matches(request.user, min_score=min_score)
+    ranked = get_ranked_matches(request.user, min_score=min_score, destination=destination)
     results = []
     for candidate, score, breakdown in ranked:
         if destination:
             dest_match = any(
-                destination in i.destination_city.lower() or destination in i.destination_country.lower()
+                destination in i.destination_city.lower() or i.destination_city.lower() in destination or destination in i.destination_country.lower()
                 for i in candidate.itineraries.all()
             ) or any(
-                destination in ai.destination.lower()
+                destination in ai.destination.lower() or ai.destination.lower() in destination
                 for ai in candidate.ai_itineraries.filter(is_public=True)
+            ) or (
+                hasattr(candidate, 'profile') and candidate.profile.home_city and (
+                    destination in candidate.profile.home_city.lower() or candidate.profile.home_city.lower() in destination
+                )
             )
             if not dest_match:
                 continue

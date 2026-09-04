@@ -151,16 +151,19 @@ export default function Profile() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Current City
                       </label>
-                      <select
+                      <input
+                        type="text"
+                        list="profile-cities"
                         value={homeCity}
+                        placeholder="e.g. Hyderabad, Delhi, Bangalore..."
                         onChange={(e) => setHomeCity(e.target.value)}
-                        className="w-full px-4 py-3 bg-[#f0f4f8] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981] text-gray-900 text-sm transition-shadow appearance-none"
-                      >
-                        <option value="">Select your city</option>
+                        className="w-full px-4 py-3 bg-[#f0f4f8] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981] text-gray-900 text-sm transition-shadow"
+                      />
+                      <datalist id="profile-cities">
                         {CITIES.map(city => (
-                          <option key={city} value={city}>{city}</option>
+                          <option key={city} value={city} />
                         ))}
-                      </select>
+                      </datalist>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>

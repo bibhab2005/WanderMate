@@ -22,7 +22,7 @@ function PrivateRoute({ children }) {
   const location = useLocation()
   if (loading) return <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#e5e7eb] border-t-[#0d9488] rounded-full animate-spin" /></div>
   if (!user) return <Navigate to="/login" replace />
-  if (!user.onboarding_complete && location.pathname !== '/onboarding') {
+  if (!user.onboarding_complete && !location.pathname.startsWith('/onboarding')) {
     return <Navigate to="/onboarding" replace />
   }
   return children

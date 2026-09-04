@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../api';
 import { useAuth } from '../App';
+import { CITIES } from '../constants';
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -12,6 +13,9 @@ const Onboarding = () => {
   // Form states
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [location, setLocation] = useState('');
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const cityDropdownRef = useRef(null);
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [bio, setBio] = useState('');
@@ -19,10 +23,25 @@ const Onboarding = () => {
   const [languages, setLanguages] = useState([]);
 
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target)) {
+        setCityDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredCities = location.trim()
+    ? CITIES.filter(c => c.toLowerCase().includes(location.toLowerCase().trim()))
+    : CITIES;
+
+  useEffect(() => {
     apiFetch('/api/me/').then(({ ok, data }) => {
       if (ok && data.authenticated) {
         setFullName(data.profile?.full_name || '');
         setEmail(data.profile?.email || '');
+        setLocation(data.profile?.home_city || '');
       }
     });
   }, []);
@@ -65,11 +84,12 @@ const Onboarding = () => {
 
   const completeOnboarding = async () => {
     setLoading(true);
-    const { ok } = await apiFetch('/onboarding/complete/', {
+    const { ok } = await apiFetch('/api/onboarding/complete/', {
       method: 'POST',
       body: JSON.stringify({
         full_name: fullName,
         email: email,
+        home_city: location.trim(),
         age: age ? parseInt(age, 10) : null,
         gender,
         bio,
@@ -149,12 +169,70 @@ const Onboarding = () => {
                   />
                 </div>
 
+                <div className="flex flex-col gap-2 relative" ref={cityDropdownRef}>
+                  <label className="text-[13px] font-medium text-[#5f6368] ml-1" htmlFor="location">Current City</label>
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      id="location" 
+                      autoComplete="off"
+                      value={location}
+                      onFocus={() => setCityDropdownOpen(true)}
+                      onChange={(e) => {
+                        setLocation(e.target.value);
+                        setCityDropdownOpen(true);
+                      }}
+                      className="w-full px-4 py-3.5 pr-10 bg-white border border-[#dadce0] rounded-xl focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-all text-[15px]" 
+                      placeholder="e.g., Hyderabad, Delhi, Bangalore..." 
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setCityDropdownOpen(prev => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] hover:text-[#202124] p-1 cursor-pointer"
+                    >
+                      <svg className={`w-4 h-4 transition-transform duration-200 ${cityDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {cityDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#dadce0] rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto py-1">
+                      {filteredCities.length > 0 ? (
+                        filteredCities.map(city => (
+                          <button
+                            key={city}
+                            type="button"
+                            className="w-full text-left px-4 py-2.5 text-sm text-[#202124] hover:bg-[#f0fdf4] hover:text-[#10b981] transition-colors flex items-center justify-between cursor-pointer"
+                            onClick={() => {
+                              setLocation(city);
+                              setCityDropdownOpen(false);
+                            }}
+                          >
+                            <span>{city}</span>
+                            {location.toLowerCase() === city.toLowerCase() && (
+                              <span className="text-[#10b981] font-bold text-xs">✓</span>
+                            )}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-xs text-gray-500">
+                          Custom city "{location}" will be saved
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-[#5f6368] ml-1" htmlFor="age">Age</label>
                     <input 
                       type="number" 
                       id="age" 
+                      min="1"
+                      max="120"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       className="w-full px-4 py-3.5 bg-transparent border border-[#dadce0] rounded-xl focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-all text-[15px]" 

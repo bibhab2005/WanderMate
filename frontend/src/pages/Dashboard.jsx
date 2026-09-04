@@ -86,16 +86,19 @@ export default function Dashboard() {
 
               <div className="flex-grow min-w-[200px] space-y-1.5">
                 <label className="block text-xs font-semibold text-gray-700 ml-1">Destination</label>
-                <select
+                <input
+                  type="text"
+                  list="dashboard-cities"
+                  placeholder="Any Destination (e.g. Delhi)..."
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  className="w-full bg-[#f8f9fa] border border-transparent focus:border-[#34A853] focus:ring-1 focus:ring-[#34A853] rounded-xl px-4 py-2.5 outline-none transition-all appearance-none"
-                >
-                  <option value="">Any Destination</option>
+                  className="w-full bg-[#f8f9fa] border border-transparent focus:border-[#34A853] focus:ring-1 focus:ring-[#34A853] rounded-xl px-4 py-2.5 outline-none transition-all text-sm text-gray-900"
+                />
+                <datalist id="dashboard-cities">
                   {CITIES.map(city => (
-                    <option key={city} value={city}>{city}</option>
+                    <option key={city} value={city} />
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <div className="flex gap-2 shrink-0">

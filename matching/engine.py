@@ -125,14 +125,17 @@ def compute_match_score(user_a, user_b):
     return percentage, breakdown
 
 
-def get_ranked_matches(user, min_score=0):
+def get_ranked_matches(user, min_score=0, destination=None):
     from django.contrib.auth.models import User
     candidates = User.objects.exclude(id=user.id).select_related(
         'profile', 'preferences'
     ).prefetch_related('itineraries', 'ai_itineraries')
 
-    if hasattr(user, 'profile') and user.profile.home_city:
-        candidates = candidates.filter(profile__home_city__iexact=user.profile.home_city)
+    # When searching for a destination (e.g. hiking in Delhi), explore all companions
+    if not destination and hasattr(user, 'profile') and user.profile.home_city:
+        same_city_candidates = candidates.filter(profile__home_city__iexact=user.profile.home_city)
+        if same_city_candidates.exists():
+            candidates = same_city_candidates
 
     results = []
     for candidate in candidates:

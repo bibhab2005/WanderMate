@@ -169,16 +169,19 @@ const Itineraries = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <select 
+          <input 
+            type="text"
+            list="itinerary-cities"
+            placeholder="Destination (e.g. Delhi, Manali hiking...)"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="bg-[#f8f9fa] border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-[#4285F4] transition-colors appearance-none"
-          >
-            <option value="" disabled>Select Destination</option>
+            className="bg-[#f8f9fa] border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-[#4285F4] transition-colors"
+          />
+          <datalist id="itinerary-cities">
             {CITIES.map(city => (
-              <option key={city} value={city}>{city}</option>
+              <option key={city} value={city} />
             ))}
-          </select>
+          </datalist>
           <input 
             type="number" 
             placeholder="Days"
@@ -382,14 +385,10 @@ const Itineraries = () => {
 
   return (
     <div className="min-h-screen bg-[#f9fafb] text-gray-900 flex flex-col font-sans print:bg-white">
-      <div className="print:hidden">
-        <Navbar />
-      </div>
-      <div className="flex flex-1 overflow-hidden print:overflow-visible">
-        <div className="print:hidden shrink-0">
-          <Sidebar />
-        </div>
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto print:p-0 print:overflow-visible">
+      <Navbar />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 p-6 md:p-8 print:p-0">
           <div className="max-w-6xl mx-auto w-full print:max-w-none">
             {viewState === 'list' && renderList()}
             {viewState === 'generate' && renderGenerate()}

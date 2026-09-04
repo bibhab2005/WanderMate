@@ -10,6 +10,23 @@ class TravelPreferenceSerializer(serializers.ModelSerializer):
         fields = ['style_tags']
 
 
+def _resolve_user_full_name(user):
+    name = user.get_full_name().strip()
+    if name:
+        return name
+    social_account = SocialAccount.objects.filter(user=user, provider='google').first()
+    if social_account and social_account.extra_data:
+        extra = social_account.extra_data
+        google_name = (extra.get('name') or '').strip()
+        if google_name:
+            return google_name
+        given = (extra.get('given_name') or '').strip()
+        family = (extra.get('family_name') or '').strip()
+        if given or family:
+            return f"{given} {family}".strip()
+    return user.username
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
@@ -28,7 +45,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ]
 
     def get_full_name(self, obj):
-        return obj.user.get_full_name() or obj.user.username
+        return _resolve_user_full_name(obj.user)
 
     def get_avatar(self, obj):
         user = obj.user
@@ -116,7 +133,7 @@ def serialize_profile(user):
         return {
             'id': user.id,
             'username': user.username,
-            'full_name': user.get_full_name() or user.username,
+            'full_name': _resolve_user_full_name(user),
             'email': user.email,
             'avatar': f"https://api.dicebear.com/7.x/avataaars/svg?seed={user.username}",
             'bio': '', 'home_city': '', 'age': None, 'gender': '',
